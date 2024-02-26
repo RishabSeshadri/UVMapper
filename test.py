@@ -1,5 +1,18 @@
 import cv2
 import numpy as np
+import bpy
+
+bpy.data.objects["Cube"].data.vertices[0].co.x += 1.0
+
+
+# TODO
+# move to directory containing the blender.exe file
+# run blender -b
+# set up script to do that
+# https://cd3dtech.com/posts/blender-rendering-from-the-command-line/
+
+
+
 
 lower_H = 131
 lower_S = 211
