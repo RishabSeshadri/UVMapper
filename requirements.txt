@@ -22,3 +22,10 @@ sphinx-autobuild==2021.3.14
 
 # Required for spell-checking
 pyenchant
+
+# Required for UV Map manipulation
+bpy
+
+# Required for contour drawing
+opencv-python
+numpy
