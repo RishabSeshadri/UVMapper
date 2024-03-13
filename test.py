@@ -1,41 +1,10 @@
 import numpy as np
 import cv2
 import bpy
+import bmesh
 import os
-
-
-cube = bpy.data.objects["Cube"]
-
-bpy.context.view_layer.objects.active = cube
-
-cube.select_set(True)
-
-uv_layer = cube.data.uv_layers["UVMap"].data
-
-# Debug: Print initial UV coordinates
-print("Initial UV coordinates:")
-for poly in cube.data.polygons:
-    for loop_index in poly.loop_indices:
-        loop_uv = uv_layer[loop_index]
-        print(loop_uv.uv)
-
-# Example: Move all UV coordinates slightly
-for poly in cube.data.polygons:
-    for loop_index in poly.loop_indices:
-        loop_uv = uv_layer[loop_index]
-        # This moves the UV coordinates by 0.1 on the U (x) and V (y) axes
-        loop_uv.uv.x += 0.2
-        loop_uv.uv.y += 0.2
-
-# Debug: Print modified UV coordinates
-print("Modified UV coordinates:")
-for poly in cube.data.polygons:
-    for loop_index in poly.loop_indices:
-        loop_uv = uv_layer[loop_index]
-        print(loop_uv.uv)
-
-
-bpy.ops.wm.save_as_mainfile(filepath=bpy.data.filepath)
+from math import radians
+from mathutils import Matrix, Euler
 
 # TODO
 # move to directory containing the blender.exe file
@@ -48,6 +17,75 @@ bpy.ops.wm.save_as_mainfile(filepath=bpy.data.filepath)
 # cd 'C:\Program Files\Blender Foundation\Blender 4.0\'
 # blender -b .\4.0\python\cube.blend --python .\4.0\python\test.py
 # Use `./bin/python.exe ...`
+
+def look_down_z_axis():
+    # Assuming you are in the 3D View, set the view to look down the Z-axis
+    for area in bpy.context.screen.areas:
+        print(area.type)
+        if area.type == 'VIEW_3D':
+            space = area.spaces[0]
+            # Set the view rotation (looking straight down the Z-axis)
+            space.region_3d.view_rotation = Euler((0.0, 0.0, 0.0), 'XYZ').to_quaternion()
+            break
+
+def select_object_portion():
+    # Ensure the active object is in edit mode
+    bpy.ops.object.mode_set(mode='EDIT')
+    
+    # Assuming we're working with a mesh
+    obj = bpy.context.edit_object
+    me = obj.data
+    
+    # Get a BMesh representation
+    bm = bmesh.from_edit_mesh(me)
+    
+    # Deselect all
+    bpy.ops.mesh.select_all(action='DESELECT')
+    bm.select_mode = {'VERT'} # Change to {'EDGE'} or {'FACE'} as needed
+    
+    # Select a portion of the mesh here
+    # Example: Selecting vertices based on a condition (e.g., z coordinate)
+    for v in bm.verts:
+        if v.co.z > 0: # Example condition, adjust as necessary
+            v.select = True
+    
+    # Update the mesh to reflect the selection
+    bmesh.update_edit_mesh(me)
+
+select_object_portion()
+bpy.context.window.workspace = bpy.data.workspaces['UV Editing']
+look_down_z_axis()
+# bpy.ops.uv.project_from_view()
+
+cube = bpy.data.objects["Cube"]
+
+bpy.context.view_layer.objects.active = cube
+
+cube.select_set(True)
+
+uv_layer = cube.data.uv_layers["UVMap"].data
+'''
+# Example: Move all UV coordinates slightly
+for poly in cube.data.polygons:
+    for loop_index in poly.loop_indices:
+        loop_uv = uv_layer[loop_index]
+        # This moves the UV coordinates by 0.1 on the U (x) and V (y) axes
+        loop_uv.uv.x += 0.2
+        loop_uv.uv.y += 0.2
+'''
+
+bpy.ops.wm.save_as_mainfile(filepath=bpy.data.filepath)
+
+'''
+# Debug: Print UV coordinates
+print("UV coordinates:")
+for poly in cube.data.polygons:
+    for loop_index in poly.loop_indices:
+        loop_uv = uv_layer[loop_index]
+        print(loop_uv.uv)
+'''
+
+# Commented: code to find points on the inside of the purple outline
 '''
 lower_H = 131
 lower_S = 211
