@@ -20,11 +20,9 @@ from time import sleep
 # blender .\4.0\python\poster.blend --python .\4.0\python\test.py
 # Use `./bin/python.exe ...`
 
-
-
-# rotate -142
-# scale to 0.9
-# mirror x
+image_path = "C:/Program Files/Blender Foundation/Blender 4.0/4.0/python/updated_map.png"
+print(os.getcwd())
+image = bpy.data.images.load(image_path)
 
 # Placeholder functions for finding and adjusting UVs, to be implemented based on your model and requirements
 def find_closest_vertex_to_landmark(landmark, uv_layer):
@@ -150,6 +148,44 @@ for face in bm.faces:
         
         
 bmesh.update_edit_mesh(me)
+
+obj = bpy.context.active_object
+material = obj.data.materials[0]
+
+
+material.use_nodes = True
+nodes = material.node_tree.nodes
+
+# Clear all nodes to start clean (optional)
+for node in nodes:
+    nodes.remove(node)
+
+# Create a new node for the Principled BSDF shader
+shader = nodes.new(type='ShaderNodeBsdfPrincipled')
+shader.location = (0, 0)
+
+# Create the Image Texture node
+texture_node = nodes.new('ShaderNodeTexImage')
+texture_node.image = image
+texture_node.location = (-200, 0)
+
+# Connect the Image Texture node to the Base Color of the Principled BSDF
+material.node_tree.links.new(shader.inputs['Base Color'], texture_node.outputs['Color'])
+
+# Add the Material Output node (should be there by default, but just in case)
+output_node = nodes.new(type='ShaderNodeOutputMaterial')
+output_node.location = (200, 0)
+
+# Connect the Shader to the Material Output node
+material.node_tree.links.new(output_node.inputs['Surface'], shader.outputs['BSDF'])
+
+    # Set the UV editor to display the image
+for area in bpy.context.screen.areas:
+    if area.type == 'IMAGE_EDITOR':
+        for space in area.spaces:
+            if space.type == 'IMAGE_EDITOR':
+                space.image = image
+                break
 
 # bpy.ops.uv.project_from_view(override)
 
